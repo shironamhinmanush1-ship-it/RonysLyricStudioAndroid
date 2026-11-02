@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#07070b">
+<title>Lyric Studio Pro - Mobile Master</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2:wght@500;700&family=Hind+Siliguri:wght@400;600;700&family=Noto+Serif+Bengali:wght@500;700&family=Noto+Sans+Bengali:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07070b;
+  --panel: #111118;
+  --card: #161722;
+  --line: #262938;
+  --tx: #fdfdfd;
+  --mut: #9499ab;
+  --pink: #ff3b6f;
+  --pink-glow: rgba(255, 59, 111, 0.4);
+  --accent: #ff6584;
+  --gold: #f5b041;
+  --green: #10b981;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  margin: 0; padding: 0; background: var(--bg); color: var(--tx);
+  font-family: 'Hind Siliguri', system-ui, sans-serif;
+  width: 100%; min-width: 0; overflow-x: hidden;
+  padding-bottom: calc(110px + env(safe-area-inset-bottom, 16px));
+}
+header.top {
+  position: sticky; top: 0; z-index: 30;
+  background: rgba(11, 12, 19, 0.92); backdrop-filter: blur(14px);
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 14px 10px;
+  border-bottom: 1px solid var(--line);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.brand-title { font-size: 16px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px; }
+.brand-sub { font-size: 11px; color: var(--mut); }
+.top-actions { display: flex; gap: 8px; }
+.btn {
+  background: #202434; color: #fff; border: 1px solid var(--line);
+  border-radius: 10px; padding: 7px 12px; font-size: 13px; font-weight: 600;
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  touch-action: manipulation;
+}
+.btn:active { transform: scale(0.97); }
+.btn.pri { background: linear-gradient(135deg, #e0245e, var(--pink)); border-color: var(--pink); box-shadow: 0 4px 14px var(--pink-glow); }
+.btn.green { background: #059669; border-color: #10b981; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.main-wrap { max-width: 600px; margin: auto; padding: 12px; }
+
+/* Sticky Live Preview Area */
+.preview-card {
+  position: sticky; top: 56px; z-index: 25;
+  background: rgba(14, 15, 23, 0.95); backdrop-filter: blur(16px);
+  border: 1px solid var(--line); border-radius: 18px; padding: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.85); margin-bottom: 14px;
+}
+.stage-box {
+  width: 100%; aspect-ratio: 9/16; max-height: 38vh;
+  background: #000; border-radius: 12px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center; margin: auto;
+}
+.stage-box.ratio-16-9 { aspect-ratio: 16/9; max-height: 28vh; }
+.stage-box.ratio-1-1 { aspect-ratio: 1/1; max-height: 32vh; }
+canvas#liveCanvas { width: 100%; height: 100%; object-fit: contain; display: block; }
+.preview-info {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 11px; color: var(--mut); margin-top: 6px; padding: 0 4px;
+}
+.live-line-text { color: #ffb5cb; font-size: 12px; font-weight: 600; text-align: center; margin-top: 4px; min-height: 18px; }
+
+/* Cards & Settings */
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  padding: 14px; margin-bottom: 12px;
+}
+.card h2 { margin: 0 0 10px; font-size: 14px; color: #ffb7ce; display: flex; align-items: center; justify-content: space-between; }
+.field {
+  width: 100%; background: #0b0c13; color: #fff; border: 1px solid var(--line);
+  border-radius: 10px; padding: 9px 12px; font-size: 14px; font-family: inherit;
+}
+.field:focus { outline: none; border-color: var(--pink); }
+textarea.field { resize: vertical; min-height: 120px; line-height: 1.6; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+label.lbl { display: block; font-size: 11px; color: var(--mut); margin-bottom: 4px; }
+.range-box { display: flex; align-items: center; gap: 8px; }
+input[type="range"] { flex: 1; accent-color: var(--pink); height: 26px; }
+
+/* Sync List */
+.sync-list {
+  max-height: 220px; overflow-y: auto; margin-top: 10px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.sync-item {
+  display: flex; align-items: center; gap: 8px;
+  background: #0d0f17; border: 1px solid var(--line); border-radius: 10px;
+  padding: 8px 10px; font-size: 13px; cursor: pointer; text-align: left; color: #fff;
+}
+.sync-item.active { border-color: var(--pink); background: rgba(224, 36, 94, 0.18); }
+.sync-num { color: var(--mut); font-size: 11px; min-width: 20px; }
+.sync-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Noto Serif Bengali', serif; }
+.sync-time { font-size: 11px; color: var(--gold); }
+
+/* Bottom Floating Control Bar */
+.bottom-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 40;
+  background: rgba(11, 12, 19, 0.95); backdrop-filter: blur(20px);
+  border-top: 1px solid var(--line);
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 12px));
+  max-width: 600px; margin: auto;
+}
+.timeline-slider-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.time-clock { font-size: 11px; color: var(--mut); font-family: monospace; min-width: 75px; text-align: right; }
+.main-controls-row { display: flex; gap: 6px; align-items: center; }
+.big-set-btn {
+  flex: 2; height: 46px; font-size: 15px; font-weight: 700;
+  background: linear-gradient(135deg, #e0245e, var(--pink));
+  color: #fff; border: none; border-radius: 12px;
+  box-shadow: 0 6px 18px var(--pink-glow); cursor: pointer;
+}
+.big-set-btn:active { transform: scale(0.96); }
+.nudge-row { display: flex; gap: 4px; margin-top: 6px; }
+.nudge-btn { flex: 1; padding: 4px 0; font-size: 11px; border-radius: 7px; background: #1c202d; color: var(--mut); border: 1px solid var(--line); cursor: pointer; }
+
+/* Status Toast */
+.status-tip {
+  font-size: 12px; color: var(--mut); line-height: 1.4; padding: 8px;
+  background: #090a10; border-radius: 8px; border: 1px solid var(--line); margin-top: 8px;
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div>
+    <div class="brand-title">🎬 Lyric Studio Pro</div>
+    <div class="brand-sub">বাংলা লিরিক ভিডিও ও রিয়েল-টাইম সিঙ্ক</div>
+  </div>
+  <div class="top-actions">
+    <button class="btn" id="saveProjBtn">💾 সেভ</button>
+    <label class="btn" style="margin:0;"><input type="file" id="loadProjFile" accept=".json" style="display:none;">📂 লোড</label>
+  </div>
+</header>
+
+<div class="main-wrap">
+
+  <!-- Sticky Live Canvas Preview -->
+  <div class="preview-card">
+    <div class="stage-box" id="stageBox">
+      <canvas id="liveCanvas" width="720" height="1280"></canvas>
+    </div>
+    <div class="live-line-text" id="liveLineText">গান ও লিরিক্স লোড করুন</div>
+    <div class="preview-info">
+      <span id="previewAspectText">রেটিও: 9:16 (Reels/Shorts)</span>
+      <span id="previewTimeText">00:00 / 00:00</span>
+    </div>
+  </div>
+
+  <!-- Step 1: Media -->
+  <div class="card">
+    <h2>১. গান ও ব্যাকগ্রাউন্ড <span style="font-size:11px;color:var(--mut);">অডিও + ভিডিও/ছবি</span></h2>
+    <div class="grid-2">
+      <div>
+        <label class="lbl">🎵 গান আপলোড (MP3/WAV/M4A)</label>
+        <input type="file" id="audioFileInput" class="field" accept="audio/*">
+      </div>
+      <div>
+        <label class="lbl">🎞️ ব্যাকগ্রাউন্ড (ভিডিও/ছবি)</label>
+        <input type="file" id="bgFileInput" class="field" accept="video/*,image/*">
+      </div>
+    </div>
+    <div id="audioInfoText" class="status-tip">গান নির্বাচন করা হয়নি। উপরে গান নির্বাচন করুন।</div>
+  </div>
+
+  <!-- Step 2: Lyrics -->
+  <div class="card">
+    <h2>২. লিরিক্স পেস্ট করুন <span id="lineCountBadge" style="font-size:11px;color:var(--pink);">০ লাইন</span></h2>
+    <textarea id="lyricsTextInput" class="field" placeholder="এখানে প্রতিটি লাইনে একটি করে লিরিক লিখুন..."></textarea>
+    <div style="display:flex; gap:6px; margin-top:8px;">
+      <button class="btn pri" id="applyLyricsBtn" style="flex:1;">✅ লিরিক্স সেট করুন</button>
+      <button class="btn" id="clearLyricsBtn">মুছুন</button>
+      <button class="btn" id="lrcExportBtn">📄 LRC এক্সপোর্ট</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Sync Tracker -->
+  <div class="card">
+    <h2>৩. সিঙ্ক তালিকা ও অ্যাডজাস্টমেন্ট <span style="font-size:11px;color:var(--gold);">ট্যাপ সিঙ্ক</span></h2>
+    <div class="sync-list" id="syncItemsList"></div>
+    <div style="display:flex; gap:6px; margin-top:8px;">
+      <button class="btn" id="undoBtn" style="flex:1;">↩ Undo</button>
+      <button class="btn" id="autoSpreadBtn" style="flex:1;">⚡ সমান ভাগ (Auto)</button>
+    </div>
+    <div class="status-tip" id="syncHelpText">
+      নিচের প্লে (▶) চাপুন। গান চলতে থাকলে প্রতিটা লাইন গাওয়া শুরু হওয়ার মুহূর্তে <b>"SET - লাইন শুরু"</b> চাপুন।
+    </div>
+  </div>
+
+  <!-- Step 4: Styling & Effects -->
+  <div class="card">
+    <h2>৪. ডিজাইন, ফন্ট ও ইফেক্ট</h2>
+    <div class="grid-2">
+      <div>
+        <label class="lbl">ভিডিও সাইজ (Ratio)</label>
+        <select id="ratioSelect" class="field">
+          <option value="9:16">9:16 (Reels/Shorts)</option>
+          <option value="16:9">16:9 (YouTube)</option>
+          <option value="1:1">1:1 (Square)</option>
+        </select>
+      </div>
+      <div>
+        <label class="lbl">বাংলা ফন্ট</label>
+        <select id="fontSelect" class="field">
+          <option value="Hind Siliguri">Hind Siliguri</option>
+          <option value="Noto Serif Bengali">Noto Serif Bengali</option>
+          <option value="Baloo Da 2">Baloo Da 2</option>
+          <option value="Noto Sans Bengali">Noto Sans Bengali</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid-3" style="margin-top:8px;">
+      <div>
+        <label class="lbl">অ্যানিমেশন</label>
+        <select id="animSelect" class="field">
+          <option value="rise">Rise Up</option>
+          <option value="fade">Fade In</option>
+          <option value="zoom">Zoom Pop</option>
+          <option value="typewriter">Typewriter</option>
+        </select>
+      </div>
+      <div>
+        <label class="lbl">ইফেক্ট</label>
+        <select id="effectSelect" class="field">
+          <option value="rain">বৃষ্টি (Rain)</option>
+          <option value="glow">গ্লো (Bokeh)</option>
+          <option value="sparkle">স্পার্কল (Sparkle)</option>
+          <option value="none">কোনোটি নয়</option>
+        </select>
+      </div>
+      <div>
+        <label class="lbl">লেখা পজিশন</label>
+        <select id="posSelect" class="field">
+          <option value="60">নিচে (Bottom)</option>
+          <option value="50">মাঝখানে (Center)</option>
+          <option value="35">উপরে (Top)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top:10px;">
+      <div>
+        <label class="lbl">ফন্ট সাইজ (<span id="fontSizeVal">62</span>px)</label>
+        <div class="range-box">
+          <input type="range" id="fontSizeRange" min="36" max="96" value="62">
+        </div>
+      </div>
+      <div>
+        <label class="lbl">ব্যাকগ্রাউন্ড অন্ধকার (<span id="darkVal">45</span>%)</label>
+        <div class="range-box">
+          <input type="range" id="darkRange" min="0" max="85" value="45">
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top:8px;">
+      <div>
+        <label class="lbl">লেখার রঙ</label>
+        <input type="color" id="fontColorInput" class="field" value="#ffffff" style="height:38px;padding:2px;">
+      </div>
+      <div>
+        <label class="lbl">গ্লো রঙ</label>
+        <input type="color" id="glowColorInput" class="field" value="#ff3b6f" style="height:38px;padding:2px;">
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 5: Export -->
+  <div class="card">
+    <h2>৫. ভিডিও তৈরি ও ডাউনলোড (MP4/WebM)</h2>
+    <div class="grid-2">
+      <div>
+        <label class="lbl">রেজোলিউশন</label>
+        <select id="resSelect" class="field">
+          <option value="1080">1080p Full HD</option>
+          <option value="720" selected>720p HD (দ্রুত)</option>
+        </select>
+      </div>
+      <div>
+        <label class="lbl">ভিডিও ফরম্যাট</label>
+        <select id="formatSelect" class="field">
+          <option value="auto">Auto (MP4优先 / WebM)</option>
+          <option value="mp4">MP4 (সরাসরি)</option>
+          <option value="webm">WebM</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn pri" id="renderVideoBtn" style="width:100%;height:46px;font-size:15px;margin-top:12px;">
+      🎬 ভিডিও তৈরি ও ডাউনলোড করুন
+    </button>
+    <div id="renderProgressBox" style="display:none;margin-top:10px;">
+      <div style="height:8px;background:rgba(255,255,255,0.1);border-radius:6px;overflow:hidden;">
+        <div id="renderProgressBar" style="width:0%;height:100%;background:linear-gradient(90deg,#e0245e,#10b981);"></div>
+      </div>
+      <div class="status-tip" id="renderStatusText" style="text-align:center;margin-top:6px;">রেন্ডার হচ্ছে... ট্যাব বন্ধ করবেন না।</div>
+    </div>
+    <div id="downloadArea" style="margin-top:10px;"></div>
+  </div>
+
+</div>
+
+<!-- Fixed Bottom Control Bar -->
+<div class="bottom-bar">
+  <div class="timeline-slider-row">
+    <input type="range" id="seekSlider" min="0" max="100" step="0.05" value="0">
+    <span class="time-clock" id="clockText">0:00 / 0:00</span>
+  </div>
+  <div class="main-controls-row">
+    <button class="btn" id="seekBackBtn" style="min-width:44px;">⏪ 3s</button>
+    <button class="btn pri" id="playPauseBtn" style="min-width:54px;">▶</button>
+    <button class="big-set-btn" id="setLineBtn">SET — লাইন শুরু 👆</button>
+    <button class="btn" id="seekFwdBtn" style="min-width:44px;">3s ⏩</button>
+  </div>
+  <div class="nudge-row">
+    <button class="nudge-btn" data-nudge="-0.5">-0.5s</button>
+    <button class="nudge-btn" data-nudge="-0.1">-0.1s</button>
+    <button class="nudge-btn" data-nudge="0.1">+0.1s</button>
+    <button class="nudge-btn" data-nudge="0.5">+0.5s</button>
+  </div>
+</div>
+
+<script>
+(()=>{
+  const $ = id => document.getElementById(id);
+  const audio = new Audio();
+  audio.preload = 'auto';
+  audio.crossOrigin = 'anonymous';
+
+  const canvas = $('liveCanvas');
+  const ctx = canvas.getContext('2d');
+  const bgVideo = document.createElement('video');
+  bgVideo.muted = true; bgVideo.loop = true; bgVideo.playsInline = true;
+
+  let bgImg = null, bgMode = 'gradient';
+  let lyrics = [], activeLineIdx = 0, historyStack = [];
+  let isPlaying = false, isRendering = false;
+  let audioCtx = null, mediaSrc = null, destNode = null;
+
+  // Particle / Rain system
+  const particles = Array.from({length: 70}, (_, i) => ({
+    x: Math.random(), y: Math.random(),
+    v: 0.003 + Math.random() * 0.007,
+    drift: (Math.random() - 0.5) * 0.002,
+    size: 1 + Math.random() * 2.5
+  }));
+
+  const sampleLyrics = [
+    "আমার সোনার বাংলা",
+    "আমি তোমায় ভালোবাসি",
+    "চিরদিন তোমার আকাশ",
+    "তোমার বাতাস আমার প্রাণে",
+    "বাজায় বাঁশি সোনার বাংলা"
+  ];
+
+  function formatTime(sec) {
+    sec = Math.max(0, Number(sec) || 0);
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    const ms = Math.floor((sec % 1) * 10);
+    return `${m}:${s < 10 ? '0' : ''}${s}.${ms}`;
+  }
+
+  function saveSnapshot() {
+    historyStack.push(JSON.stringify({ lyrics, activeLineIdx }));
+    if (historyStack.length > 25) historyStack.shift();
+  }
+
+  function applyLyrics(text) {
+    saveSnapshot();
+    const rawLines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    lyrics = rawLines.map(t => ({ text: t, start: null, end: null }));
+    activeLineIdx = 0;
+    $('lineCountBadge').textContent = `${lyrics.length} লাইন`;
+    renderSyncList();
+    drawFrame();
+  }
+
+  function renderSyncList() {
+    const list = $('syncItemsList');
+    list.innerHTML = '';
+    lyrics.forEach((item, idx) => {
+      const div = document.createElement('div');
+      div.className = 'sync-item' + (idx === activeLineIdx ? ' active' : '');
+      div.innerHTML = `
+        <span class="sync-num">${idx + 1}</span>
+        <span class="sync-text">${item.text}</span>
+        <span class="sync-time">${item.start !== null ? formatTime(item.start) : 'সময় নেই'}</span>
+      `;
+      div.onclick = () => {
+        activeLineIdx = idx;
+        renderSyncList();
+        if (item.start !== null) {
+          audio.currentTime = item.start;
+          drawFrame();
+        }
+      };
+      list.appendChild(div);
+    });
+  }
+
+  function getCurrentIndex(t) {
+    let cur = -1;
+    for (let i = 0; i < lyrics.length; i++) {
+      if (lyrics[i].start !== null && lyrics[i].start <= t) {
+        cur = i;
+      }
+    }
+    if (cur >= 0) {
+      const line = lyrics[cur];
+      const end = line.end !== null ? line.end : (lyrics.slice(cur + 1).find(x => x.start !== null)?.start ?? Infinity);
+      if (t < end) return cur;
+    }
+    return -1;
+  }
+
+  function wrapText(text, maxWidth, fontStr) {
+    ctx.font = fontStr;
+    const words = String(text).split(/\s+/);
+    const lines = [];
+    let curLine = '';
+    for (const w of words) {
+      const testLine = curLine ? curLine + ' ' + w : w;
+      if (ctx.measureText(testLine).width > maxWidth && curLine) {
+        lines.push(curLine);
+        curLine = w;
+      } else {
+        curLine = testLine;
+      }
+    }
+    if (curLine) lines.push(curLine);
+    return lines.length ? lines : [''];
+  }
+
+  function drawFrame() {
+    const w = canvas.width, h = canvas.height;
+    const t = audio.currentTime || 0;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Background drawing
+    if (bgMode === 'video' && bgVideo.readyState >= 2) {
+      const s = Math.max(w / bgVideo.videoWidth, h / bgVideo.videoHeight);
+      const dw = bgVideo.videoWidth * s, dh = bgVideo.videoHeight * s;
+      ctx.drawImage(bgVideo, (w - dw) / 2, (h - dh) / 2, dw, dh);
+    } else if (bgMode === 'image' && bgImg && bgImg.complete) {
+      const s = Math.max(w / bgImg.width, h / bgImg.height);
+      const dw = bgImg.width * s, dh = bgImg.height * s;
+      ctx.drawImage(bgImg, (w - dw) / 2, (h - dh) / 2, dw, dh);
+    } else {
+      const grad = ctx.createLinearGradient(0, 0, w, h);
+      grad.addColorStop(0, '#100a1c');
+      grad.addColorStop(0.5, '#1e1131');
+      grad.addColorStop(1, '#080912');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    // Dark overlay
+    const darkPct = Number($('darkRange').value) / 100;
+    ctx.fillStyle = `rgba(0,0,0,${darkPct})`;
+    ctx.fillRect(0, 0, w, h);
+
+    // Effects
+    const effect = $('effectSelect').value;
+    if (effect !== 'none') {
+      particles.forEach(p => {
+        p.y += p.v;
+        p.x += p.drift;
+        if (p.y > 1) { p.y = 0; p.x = Math.random(); }
+        if (p.x > 1) p.x = 0;
+        if (p.x < 0) p.x = 1;
+
+        const px = p.x * w, py = p.y * h;
+        if (effect === 'rain') {
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          ctx.lineTo(px - 3, py + 16);
+          ctx.stroke();
+        } else if (effect === 'glow') {
+          ctx.fillStyle = $('glowColorInput').value;
+          ctx.globalAlpha = 0.35;
+          ctx.beginPath();
+          ctx.arc(px, py, p.size * 5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        } else if (effect === 'sparkle') {
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(px, py, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+    }
+
+    // Lyrics Drawing
+    const idx = getCurrentIndex(t);
+    const fontName = $('fontSelect').value;
+    const baseSize = Number($('fontSizeRange').value) * (w / 720);
+    const maxW = w * 0.86;
+    const posPct = Number($('posSelect').value) / 100;
+    const centerY = h * posPct;
+
+    if (idx >= 0) {
+      const line = lyrics[idx];
+      const fontStr = `700 ${baseSize}px "${fontName}", sans-serif`;
+      const lines = wrapText(line.text, maxW, fontStr);
+      const lineH = baseSize * 1.35;
+      const totalH = lines.length * lineH;
+      let startY = centerY - totalH / 2 + lineH / 2;
+
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = $('fontColorInput').value;
+      ctx.shadowColor = $('glowColorInput').value;
+      ctx.shadowBlur = baseSize * 0.35;
+
+      ctx.lineWidth = Math.max(3, baseSize * 0.08);
+      ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+
+      lines.forEach(l => {
+        ctx.strokeText(l, w / 2, startY, maxW);
+        ctx.fillText(l, w / 2, startY, maxW);
+        startY += lineH;
+      });
+      ctx.shadowBlur = 0;
+      $('liveLineText').textContent = `লাইন ${idx + 1}/${lyrics.length}: ${line.text}`;
+    } else {
+      $('liveLineText').textContent = t < (lyrics.find(x => x.start !== null)?.start ?? 0) ? 'ইন্ট্রো / গানের শুরুতে লিরিক্স নেই' : '♪ লিরিক ভিডিও স্টুডিও ♪';
+    }
+
+    if (!isRendering) {
+      requestAnimationFrame(drawFrame);
+    }
+  }
+
+  // Set line start time
+  function setLineStart() {
+    if (!lyrics.length) { alert('আগে লিরিক্স যোগ করুন।'); return; }
+    if (!audio.src) { alert('আগে গান আপলোড করুন।'); return; }
+    saveSnapshot();
+
+    const curTime = Number(audio.currentTime.toFixed(2));
+    lyrics[activeLineIdx].start = curTime;
+
+    if (activeLineIdx > 0 && lyrics[activeLineIdx - 1].end === null) {
+      lyrics[activeLineIdx - 1].end = curTime;
+    }
+    if (activeLineIdx < lyrics.length - 1) {
+      activeLineIdx++;
+    }
+    renderSyncList();
+    $('syncHelpText').textContent = `লাইন ${activeLineIdx} সেট হয়েছে: ${formatTime(curTime)}। পরের লাইন প্রস্তুত।`;
+  }
+
+  // Event Listeners
+  $('audioFileInput').onchange = e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    audio.src = URL.createObjectURL(file);
+    $('audioInfoText').textContent = `লোড হয়েছে: ${file.name}`;
+    audio.onloadedmetadata = () => {
+      $('seekSlider').max = audio.duration || 100;
+      $('clockText').textContent = `0:00 / ${formatTime(audio.duration)}`;
+      drawFrame();
+    };
+  };
+
+  $('bgFileInput').onchange = e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    if (file.type.startsWith('video/')) {
+      bgMode = 'video';
+      bgVideo.src = url;
+      bgVideo.load();
+      bgVideo.play().catch(()=>{});
+    } else {
+      bgMode = 'image';
+      bgImg = new Image();
+      bgImg.src = url;
+    }
+  };
+
+  $('applyLyricsBtn').onclick = () => {
+    applyLyrics($('lyricsTextInput').value);
+  };
+
+  $('clearLyricsBtn').onclick = () => {
+    if (confirm('সব লিরিক্স মুছে ফেলতে চান?')) {
+      $('lyricsTextInput').value = '';
+      applyLyrics('');
+    }
+  };
+
+  $('playPauseBtn').onclick = () => {
+    if (!audio.src) return;
+    if (audio.paused) {
+      audio.play().catch(()=>{});
+      if (bgMode === 'video') bgVideo.play().catch(()=>{});
+      $('playPauseBtn').textContent = '❚❚';
+    } else {
+      audio.pause();
+      if (bgMode === 'video') bgVideo.pause();
+      $('playPauseBtn').textContent = '▶';
+    }
+  };
+
+  audio.onpause = () => $('playPauseBtn').textContent = '▶';
+  audio.onplay = () => $('playPauseBtn').textContent = '❚❚';
+
+  audio.ontimeupdate = () => {
+    $('seekSlider').value = audio.currentTime;
+    $('clockText').textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration || 0)}`;
+    $('previewTimeText').textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration || 0)}`;
+  };
+
+  $('seekSlider').oninput = e => {
+    audio.currentTime = Number(e.target.value);
+  };
+
+  $('seekBackBtn').onclick = () => audio.currentTime = Math.max(0, audio.currentTime - 3);
+  $('seekFwdBtn').onclick = () => audio.currentTime = Math.min(audio.duration || Infinity, audio.currentTime + 3);
+
+  $('setLineBtn').onclick = setLineStart;
+
+  document.querySelectorAll('[data-nudge]').forEach(btn => {
+    btn.onclick = () => {
+      const delta = Number(btn.dataset.nudge);
+      if (lyrics[activeLineIdx] && lyrics[activeLineIdx].start !== null) {
+        saveSnapshot();
+        lyrics[activeLineIdx].start = Math.max(0, Number((lyrics[activeLineIdx].start + delta).toFixed(2)));
+        renderSyncList();
+      }
+    };
+  });
+
+  $('undoBtn').onclick = () => {
+    if (!historyStack.length) return;
+    const snap = JSON.parse(historyStack.pop());
+    lyrics = snap.lyrics;
+    activeLineIdx = snap.activeLineIdx;
+    renderSyncList();
+  };
+
+  $('autoSpreadBtn').onclick = () => {
+    if (!audio.duration || !lyrics.length) return;
+    saveSnapshot();
+    const perLine = audio.duration / lyrics.length;
+    lyrics.forEach((l, i) => {
+      l.start = Number((i * perLine).toFixed(2));
+      l.end = Number(((i + 1) * perLine - 0.2).toFixed(2));
+    });
+    renderSyncList();
+  };
+
+  $('ratioSelect').onchange = e => {
+    const r = e.target.value;
+    const box = $('stageBox');
+    box.className = 'stage-box';
+    if (r === '16:9') {
+      box.classList.add('ratio-16-9');
+      canvas.width = 1280; canvas.height = 720;
+      $('previewAspectText').textContent = 'রেটিও: 16:9 (YouTube)';
+    } else if (r === '1:1') {
+      box.classList.add('ratio-1-1');
+      canvas.width = 1080; canvas.height = 1080;
+      $('previewAspectText').textContent = 'রেটিও: 1:1 (Square)';
+    } else {
+      canvas.width = 720; canvas.height = 1280;
+      $('previewAspectText').textContent = 'রেটিও: 9:16 (Reels/Shorts)';
+    }
+  };
+
+  $('fontSizeRange').oninput = e => $('fontSizeVal').textContent = e.target.value;
+  $('darkRange').oninput = e => $('darkVal').textContent = e.target.value;
+
+  // Save / Load Project JSON
+  $('saveProjBtn').onclick = () => {
+    const data = { version: 1, lyrics, ratio: $('ratioSelect').value, font: $('fontSelect').value };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'Lyric_Studio_Project.json';
+    a.click();
+  };
+
+  $('loadProjFile').onchange = e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const d = JSON.parse(ev.target.result);
+        if (d.lyrics) {
+          lyrics = d.lyrics;
+          $('lyricsTextInput').value = lyrics.map(x=>x.text).join('\n');
+          renderSyncList();
+        }
+      } catch(err) { alert('প্রজেক্ট ফাইল সঠিক নয়।'); }
+    };
+    reader.readAsText(file);
+  };
+
+  // Render & Export MP4 / WebM
+  $('renderVideoBtn').onclick = async () => {
+    if (!audio.src || !audio.duration) { alert('আগে গান আপলোড করুন।'); return; }
+    if (!lyrics.some(l => l.start !== null)) { alert('কমপক্ষে একটি লাইনের সময় SET করুন।'); return; }
+    if (!window.MediaRecorder || !canvas.captureStream) { alert('এই ব্রাউজার ভিডিও এক্সপোর্ট সমর্থন করছে না।'); return; }
+
+    isRendering = true;
+    $('renderProgressBox').style.display = 'block';
+    $('renderVideoBtn').disabled = true;
+
+    try {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        mediaSrc = audioCtx.createMediaElementSource(audio);
+        destNode = audioCtx.createMediaStreamDestination();
+        mediaSrc.connect(audioCtx.destination);
+        mediaSrc.connect(destNode);
+      }
+      await audioCtx.resume();
+
+      const stream = canvas.captureStream(30);
+      destNode.stream.getAudioTracks().forEach(tr => stream.addTrack(tr));
+
+      const mp4Types = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4'];
+      const webmTypes = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+      let selectedMime = [...mp4Types, ...webmTypes].find(m => MediaRecorder.isTypeSupported(m));
+
+      const ext = selectedMime && selectedMime.includes('mp4') ? 'mp4' : 'webm';
+      const recorder = new MediaRecorder(stream, { mimeType: selectedMime, videoBitsPerSecond: 6000000 });
+      const chunks = [];
+
+      recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+
+      const recPromise = new Promise(res => {
+        recorder.onstop = () => {
+          const blob = new Blob(chunks, { type: selectedMime || 'video/webm' });
+          const url = URL.createObjectURL(blob);
+          res({ url, ext, size: (blob.size / 1024 / 1024).toFixed(1) });
+        };
+      });
+
+      audio.currentTime = 0;
+      if (bgMode === 'video') { bgVideo.currentTime = 0; bgVideo.play().catch(()=>{}); }
+      recorder.start(200);
+      await audio.play();
+
+      const renderInterval = setInterval(() => {
+        const pct = Math.min(99, Math.round((audio.currentTime / audio.duration) * 100));
+        $('renderProgressBar').style.width = pct + '%';
+        $('renderStatusText').textContent = `ভিডিও তৈরি হচ্ছে (${ext.toUpperCase()}): ${pct}%`;
+        if (audio.ended || audio.currentTime >= audio.duration) {
+          clearInterval(renderInterval);
+          if (recorder.state === 'recording') recorder.stop();
+          audio.pause();
+        }
+      }, 250);
+
+      const res = await recPromise;
+      $('renderProgressBar').style.width = '100%';
+      $('renderStatusText').textContent = `সম্পূর্ণ! সাইজ: ${res.size} MB (${res.ext.toUpperCase()})`;
+
+      const dlArea = $('downloadArea');
+      dlArea.innerHTML = `
+        <a href="${res.url}" download="Bengali_Lyric_Video.${res.ext}" class="btn pri" style="width:100%;height:44px;text-decoration:none;display:flex;align-items:center;justify-content:center;margin-top:8px;">
+          ⬇️ ডাউনলোড ভিডিও (${res.ext.toUpperCase()})
+        </a>
+      `;
+    } catch(err) {
+      alert('রেন্ডারে সমস্যা হয়েছে: ' + err.message);
+    } finally {
+      isRendering = false;
+      $('renderVideoBtn').disabled = false;
+    }
+  };
+
+  // Init
+  $('lyricsTextInput').value = sampleLyrics.join('\n');
+  applyLyrics($('lyricsTextInput').value);
+  drawFrame();
+})();
+</script>
+</body>
+</html>
